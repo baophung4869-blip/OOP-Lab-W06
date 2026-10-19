@@ -155,3 +155,58 @@ class ProjectorRemote(TeachingDevice):
 
     def calculate_annual_maintenance_cost(self) -> float:
         return self.purchase_price * 0.04
+class ClassRoom:
+    """Lớp phòng học, thực hiện kết tập danh sách thiết bị."""
+
+    def __init__(self, room_id: str, room_name: str, capacity: int):
+        if not room_id or not room_id.strip():
+            raise ValueError("Mã phòng không được để trống.")
+        if capacity <= 0:
+            raise ValueError("Sức chứa phòng phải lớn hơn 0.")
+
+        self.room_id = room_id.strip()
+        self.room_name = room_name.strip()
+        self.capacity = capacity
+        self._devices: List[Device] = []
+
+    @property
+    def devices(self) -> List[Device]:
+        return list(self._devices)
+
+    def add_device(self, device: Device) -> bool:
+        """Quy tắc 1 & 2: Không thêm thiết bị trùng mã hoặc null."""
+        if device is None:
+            raise ValueError("Không chấp nhận đối tượng thiết bị null.")
+        if any(d.device_id.lower() == device.device_id.lower() for d in self._devices):
+            return False
+        self._devices.append(device)
+        return True
+
+    def remove_device(self, device_id: str) -> bool:
+        dev = self.find_device(device_id)
+        if dev:
+            self._devices.remove(dev)
+            return True
+        return False
+
+    def find_device(self, device_id: str) -> Optional[Device]:
+        if not device_id or not device_id.strip():
+            return None
+        target = device_id.strip().lower()
+        for d in self._devices:
+            if d.device_id.lower() == target:
+                return d
+        return None
+
+    def calculate_annual_maintenance_cost(self) -> float:
+        """Quy tắc 3: Sử dụng tính đa hình hoàn toàn."""
+        return sum(d.calculate_annual_maintenance_cost() for d in self._devices)
+
+    def get_devices_requiring_maintenance(self) -> List[Device]:
+        """Quy tắc 4: Lọc thiết bị cần bảo trì (UnderMaintenance hoặc dùng trên 5 năm)."""
+        current_year = datetime.now().year
+        return [
+            d for d in self._devices
+            if d.status == DeviceStatus.UnderMaintenance
+            or (current_year - d.year_of_usage > 5)
+        ]
