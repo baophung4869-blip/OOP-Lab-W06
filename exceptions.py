@@ -21,8 +21,14 @@ class DeviceUnavailableException(BorrowingException):
     def __init__(self, device_id: str, current_status):
         self.device_id = device_id
         self.current_status = current_status
+        # Trích xuất giá trị chuỗi nếu là Enum
+        status_str = (
+            current_status.value
+            if hasattr(current_status, "value")
+            else str(current_status)
+        )
         super().__init__(
-            f"Thiết bị '{device_id}' không ở trạng thái sẵn sàng (Trạng thái hiện tại: {current_status})."
+            f"Thiết bị '{device_id}' không ở trạng thái sẵn sàng (Trạng thái hiện tại: {status_str})."
         )
 
 
